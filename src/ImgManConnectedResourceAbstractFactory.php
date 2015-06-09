@@ -1,6 +1,7 @@
 <?php
 namespace ImgMan\Apigility;
 
+use ImgMan\Service\ImageService;
 use Zend\ServiceManager\AbstractFactoryInterface;
 use Zend\ServiceManager\AbstractPluginManager;
 use Zend\ServiceManager\Exception\ServiceNotCreatedException;
@@ -62,6 +63,7 @@ class ImgManConnectedResourceAbstractFactory implements AbstractFactoryInterface
             && !empty($config[$requestedName])
             && isset($config[$requestedName]['service'])
             && is_string($config[$requestedName]['service'])
+            && $serviceLocator->has($config[$requestedName]['service'])
         );
     }
 
@@ -80,12 +82,20 @@ class ImgManConnectedResourceAbstractFactory implements AbstractFactoryInterface
         }
 
         $config = $this->getConfig($serviceLocator)[$requestedName];
-
         $imgManService = $serviceLocator->get($config['service']);
+
+        if (!$imgManService instanceof ImageService) {
+            throw new ServiceNotCreatedException(
+                sprintf(
+                    'service must be a instance of ImgMan\Service\ImageService given: %s',
+                    is_object($imgManService) ? get_class($imgManService) : gettype($imgManService)
+                )
+            );
+        }
 
         $resourceClass = $this->getResourceClassFromConfig($config, $requestedName);
 
-        /* @var $resource \Solo\Api\Model\ImgManConnectedResource */
+        /* @var $resource \ImgMan\Apigility\Model\ImgManConnectedResource */
         $resource = new $resourceClass($imgManService);
 
         return $resource;

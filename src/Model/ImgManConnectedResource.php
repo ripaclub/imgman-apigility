@@ -11,8 +11,6 @@ use ZF\Rest\ResourceInterface;
 
 class ImgManConnectedResource extends AbstractResourceListener
 {
-
-
     /**
      * @var ImageManager
      */
@@ -27,9 +25,8 @@ class ImgManConnectedResource extends AbstractResourceListener
 
     public function getResource()
     {
-        $resource = $this->event->getTarget();
-        if ($resource instanceof ResourceInterface) {
-            return $resource;
+        if ($this->getEvent() && $this->event->getTarget() instanceof ResourceInterface) {
+            return $this->event->getTarget();
         }
 
         return null;
@@ -44,7 +41,10 @@ class ImgManConnectedResource extends AbstractResourceListener
      */
     public function fetch($id)
     {
-        $rendition = $this->event->getQueryParam('rendition', CoreInterface::RENDITION_ORIGINAL);
+        $rendition = CoreInterface::RENDITION_ORIGINAL;
+        if ($this->getEvent()) {
+            $rendition = $this->getEvent()->getQueryParam('rendition', CoreInterface::RENDITION_ORIGINAL);
+        }
 
         $image = $this->imageManager->get($id, $rendition);
 
@@ -62,30 +62,37 @@ class ImgManConnectedResource extends AbstractResourceListener
         return new ApiProblem(404, 'Image not found');
     }
 
+    /**
+     * @param mixed $id
+     * @param mixed $data
+     * @return string|null
+     */
     public function update($id, $data)
     {
-        $blob = $this->retriveBlob($data);
-
-        if (!$blob instanceof Blob) {
-            return new ApiProblem(400, 'File not found in upload request');
+        $blob = $this->searchBlob($data);
+        if ($blob instanceof ApiProblem) {
+            return $blob;
         }
-
-        $this->imageManager->grab($blob, $id);
+        return $this->imageManager->grab($blob, $id);
     }
 
-
-    protected function retriveBlob($data)
+    /**
+     * @param $data
+     * @return \ImgMan\Core\Blob\Blob|\ZF\ApiProblem\ApiProblem
+     */
+    protected function searchBlob($data)
     {
         $data = $this->retrieveData($data);
 
-        foreach ($data as $key => $file) {
-            if (!isset($file['blob'])) {
-                return new ApiProblem(400, 'File not found in upload request');
-            }
+        $iterator = new \RecursiveArrayIterator($data);
+        $recursive = new \RecursiveIteratorIterator($iterator, \RecursiveIteratorIterator::SELF_FIRST);
+        foreach ($recursive as $key => $value) {
 
-            $blob = new Blob();
-            $blob->setBlob($file['blob']);
-            return $blob;
+            if ($key === 'blob') {
+                $blob = new Blob();
+                $blob->setBlob($value);
+                return $blob;
+            }
         }
 
         return new ApiProblem(400, 'File not found in upload request');

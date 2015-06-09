@@ -1,0 +1,16 @@
+ImgManTest\Apigility\ImgManConnectedResourceAbstractFactory
+ [x] Has service without config
+ [x] Has service
+ [x] Wrong service config exception
+ [x] Wrong resource class config exception
+ [x] Get service
+ [x] Empty config
+ [x] Abstract plugin manager as service manager
+
+ImgManTest\Apigility\Model\ImgManConnectedResource
+ [x] Construct
+ [x] Get resource
+ [x] Update
+ [x] Update api problem
+ [x] Fetch
+

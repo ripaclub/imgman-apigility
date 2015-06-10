@@ -1,36 +1,34 @@
 {
-    "name": "ripaclub/imgman-apigility",
-    "license": "proprietary",
-    "homepage": "https://github.com/ripaclub/imgman-apigility",
-    "require": {
-        "php": ">=5.5.0",
-        "zfcampus/zf-api-problem": "~1.0",
-        "zfcampus/zf-apigility-provider": "~1.0",
-        "zfcampus/zf-content-negotiation": "~1.0",
-        "zfcampus/zf-content-validation": "~1.0",
-        "zfcampus/zf-hal": "~1.0",
-        "zfcampus/zf-mvc-auth": "~1.0",
-        "zfcampus/zf-oauth2": "~1.0",
-        "zfcampus/zf-rest": "~1.1",
-        "zfcampus/zf-rpc": "~1.0",
-        "zfcampus/zf-versioning": "~1.0",
-        "zfcampus/zf-apigility-documentation": "~1.0-dev",
-        "zfcampus/zf-configuration": "~1.0-dev",
-        "zfcampus/zf-console": "~1.0",
-        "ripaclub/imgman": "~0.4.0"
+  "name": "ripaclub/zf-apigility-imgman",
+  "license": "MIT",
+  "homepage": "https://github.com/ripaclub/zf-apigility-imgman",
+  "require": {
+    "php": ">=5.4.0",
+    "ripaclub/imgman": "~0.4.0",
+    "zfcampus/zf-api-problem": "~1.0",
+    "zfcampus/zf-apigility-provider": "~1.0",
+    "zfcampus/zf-content-negotiation": "~1.0",
+    "zfcampus/zf-content-validation": "~1.0",
+    "zfcampus/zf-hal": "~1.0",
+    "zfcampus/zf-mvc-auth": "~1.0",
+    "zfcampus/zf-oauth2": "~1.0",
+    "zfcampus/zf-rest": "~1.1",
+    "zfcampus/zf-rpc": "~1.0",
+    "zfcampus/zf-versioning": "~1.0",
+    "zfcampus/zf-apigility-documentation": "~1.0-dev",
+    "zfcampus/zf-configuration": "~1.0-dev",
+    "zfcampus/zf-console": "~1.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "~4.7"
+  },
+  "autoload": {
+    "psr-4": {
+      "ImgMan\\Apigility\\": "src",
+      "ImgManTest\\Apigility\\": "tests"
     },
-    "require-dev": {
-        "phpunit/phpunit": "~4.7",
-        "zendframework/zftool": "dev-master",
-        "zendframework/zend-developer-tools": "dev-master"
-    },
-    "autoload": {
-        "psr-4": {
-            "ImgMan\\Apigility\\": "src",
-            "ImgManTest\\Apigility\\": "tests"
-        },
-        "classmap": [
-            "./Module.php"
-        ]
-    }
+    "classmap": [
+      "./Module.php"
+    ]
+  }
 }

@@ -8,6 +8,9 @@ nbproject
 .settings
 composer.lock
 vendor
-components
-public/dummy.php
-public/robots.txt
+*.ipr
+*.iws
+*.iml
+build
+composer.phar
+phpunit.xml

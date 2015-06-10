@@ -9,6 +9,9 @@ use ZF\ApiProblem\ApiProblem;
 use ZF\Rest\AbstractResourceListener;
 use ZF\Rest\ResourceInterface;
 
+/**
+ * Class ImgManConnectedResource
+ */
 class ImgManConnectedResource extends AbstractResourceListener
 {
     /**
@@ -87,7 +90,6 @@ class ImgManConnectedResource extends AbstractResourceListener
         $iterator = new \RecursiveArrayIterator($data);
         $recursive = new \RecursiveIteratorIterator($iterator, \RecursiveIteratorIterator::SELF_FIRST);
         foreach ($recursive as $key => $value) {
-
             if ($key === 'blob') {
                 $blob = new Blob();
                 $blob->setBlob($value);

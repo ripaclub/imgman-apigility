@@ -163,4 +163,4 @@ class ImgManConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_TestC
         );
         */
     }
-} 
+}

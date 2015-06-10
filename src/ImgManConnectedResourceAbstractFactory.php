@@ -7,6 +7,9 @@ use Zend\ServiceManager\AbstractPluginManager;
 use Zend\ServiceManager\Exception\ServiceNotCreatedException;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
+/**
+ * Class ImgManConnectedResourceAbstractFactory
+ */
 class ImgManConnectedResourceAbstractFactory implements AbstractFactoryInterface
 {
 

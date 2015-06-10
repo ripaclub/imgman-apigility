@@ -24,8 +24,6 @@ class TestPluginManager extends ZfAbstractPluginManager
      */
     public function validatePlugin($plugin)
     {
-        // TODO: Implement validatePlugin() method.
+        // TODO: implement validatePlugin() method
     }
-
-
-} 
+}

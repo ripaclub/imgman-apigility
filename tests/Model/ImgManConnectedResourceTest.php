@@ -1,10 +1,8 @@
 <?php
 namespace ImgManTest\Apigility\Model;
 
-use PHPUnit_Framework_TestCase;
 use ImgMan\Apigility\Model\ImgManConnectedResource;
-use Zend\EventManager\EventManager;
-use ZF\Rest\Resource;
+use PHPUnit_Framework_TestCase;
 
 /**
  * Class ImgManConnectedResourceTest
@@ -94,6 +92,5 @@ class ImgManConnectedResourceTest extends PHPUnit_Framework_TestCase
         $this->imgManMock->expects($this->any())
             ->method('get')
             ->will($this->returnValue($this->imageMock));
-
     }
-} 
+}

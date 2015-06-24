@@ -5,4 +5,4 @@ ImgMan connected resource for Apigility
 
 ---
 
-[![Analytics](https://ga-beacon.appspot.com/UA-49655829-1/ripaclub/zf-imgman-apigility)](https://github.com/igrigorik/ga-beacon)
+[![Analytics](https://ga-beacon.appspot.com/UA-49657176-3/zf-imgman-apigility)](https://github.com/igrigorik/ga-beacon)

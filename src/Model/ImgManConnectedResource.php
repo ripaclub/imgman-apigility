@@ -1,9 +1,16 @@
 <?php
 namespace ImgMan\Apigility\Model;
 
+use ImgMan\Apigility\Entity\ImageEntityInterface;
 use ImgMan\Core\Blob\Blob;
 use ImgMan\Core\CoreInterface;
+use ImgMan\Image\Image;
+use ImgMan\Image\ImageInterface;
 use ImgMan\Service\ImageService as ImageManager;
+use Zend\Http\Header\Accept;
+use Zend\Http\Header\ContentLength;
+use Zend\Http\Header\ContentType;
+use Zend\Http\Request;
 use Zend\Http\Response;
 use ZF\ApiProblem\ApiProblem;
 use ZF\Rest\AbstractResourceListener;
@@ -35,7 +42,6 @@ class ImgManConnectedResource extends AbstractResourceListener
         return null;
     }
 
-
     /**
      * Fetch a resource
      *
@@ -49,17 +55,25 @@ class ImgManConnectedResource extends AbstractResourceListener
             $rendition = $this->getEvent()->getQueryParam('rendition', CoreInterface::RENDITION_ORIGINAL);
         }
 
+        /** @var $image ImageInterface */
         $image = $this->imageManager->get($id, $rendition);
-
         if ($image) {
-            $data = $image->getBlob();
 
-            // TODO: temporary workaround
+            if ($this->renderImage($image)) {
+                return $this->getHttpImageResponse($image);
+            } else {
 
-            header('Content-Type: ' . $image->getMimeType());
-            header('Content-Length: ' . strlen($data));
-            echo $data;
-            exit;
+                $entity = $this->cloneEntityClass();
+                if (!$entity instanceof ImageEntityInterface) {
+                    return new ApiProblem(500, 'Entity class must be configured');
+                }
+
+                $entity->setId($id);
+                $entity->setSize($image->getSize());
+                $entity->setMimeType($image->getMimeType());
+                $entity->setBlob(base64_encode($image->getBlob()));
+                return $entity;
+            }
         }
 
         return new ApiProblem(404, 'Image not found');
@@ -116,5 +130,47 @@ class ImgManConnectedResource extends AbstractResourceListener
             return $filter->getValues();
         }
         return (array) $data;
+    }
+
+    /**
+     * @param ImageInterface $image
+     * @return bool|Response
+     */
+    protected function renderImage(ImageInterface $image)
+    {
+        $request = $this->getEvent()->getRequest();
+        if ($request instanceof Request) {
+            $headers = $request->getHeaders();
+            if ($headers->has('Accept')
+                && ($accept = $headers->get('Accept'))
+                && $accept instanceof Accept
+                && $accept->match($image->getMimeType())
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param ImageInterface $image
+     * @return Response
+     */
+    protected function getHttpImageResponse(ImageInterface $image)
+    {
+        $response = new Response();
+        $response->setContent($image->getBlob());
+        $response->getHeaders()->addHeader(new ContentLength(strlen($image->getBlob())));
+        $response->getHeaders()->addHeader(new ContentType($image->getMimeType()));
+        return $response;
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function cloneEntityClass()
+    {
+        $entityClass = $this->getEntityClass();
+        return new $entityClass;
     }
 }

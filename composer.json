@@ -32,12 +32,13 @@
   ],
   "autoload": {
     "psr-4": {
-      "ImgMan\\Apigility\\": "src",
+      "ImgMan\\Apigility\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
       "ImgManTest\\Apigility\\": "tests"
-    },
-    "classmap": [
-      "./Module.php"
-    ]
+    }
   },
   "keywords": [
     "api",

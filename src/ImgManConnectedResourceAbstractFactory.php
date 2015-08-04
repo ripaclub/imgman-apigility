@@ -61,12 +61,12 @@ class ImgManConnectedResourceAbstractFactory implements AbstractFactoryInterface
         }
 
         return (
-            isset($config[$requestedName])
-            && is_array($config[$requestedName])
-            && !empty($config[$requestedName])
-            && isset($config[$requestedName]['service'])
-            && is_string($config[$requestedName]['service'])
-            && $serviceLocator->has($config[$requestedName]['service'])
+            isset($config[$requestedName]) &&
+            is_array($config[$requestedName]) &&
+            !empty($config[$requestedName]) &&
+            isset($config[$requestedName]['service']) &&
+            is_string($config[$requestedName]['service']) &&
+            $serviceLocator->has($config[$requestedName]['service'])
         );
     }
 
@@ -114,10 +114,11 @@ class ImgManConnectedResourceAbstractFactory implements AbstractFactoryInterface
     protected function getResourceClassFromConfig(array $config, $requestedName)
     {
         $resourceClass = isset($config['resource_class']) ? $config['resource_class'] : $this->resourceClass;
-        if ($resourceClass !== $this->resourceClass
-            && (
-                !class_exists($resourceClass)
-                || !is_subclass_of($resourceClass, 'ZF\Rest\AbstractResourceListener')
+        if (
+            $resourceClass !== $this->resourceClass &&
+            (
+                !class_exists($resourceClass) ||
+                !is_subclass_of($resourceClass, 'ZF\Rest\AbstractResourceListener')
             )
         ) {
             throw new ServiceNotCreatedException(
@@ -152,9 +153,10 @@ class ImgManConnectedResourceAbstractFactory implements AbstractFactoryInterface
         }
 
         $config = $serviceLocator->get('Config');
-        if (!isset($config[$this->moduleConfigKey])
-            || !isset($config[$this->moduleConfigKey][$this->configKey])
-            || !is_array($config[$this->moduleConfigKey][$this->configKey])
+        if (
+            !isset($config[$this->moduleConfigKey]) ||
+            !isset($config[$this->moduleConfigKey][$this->configKey]) ||
+            !is_array($config[$this->moduleConfigKey][$this->configKey])
         ) {
             $this->config = [];
             return $this->config;

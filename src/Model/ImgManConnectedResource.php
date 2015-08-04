@@ -4,7 +4,6 @@ namespace ImgMan\Apigility\Model;
 use ImgMan\Apigility\Entity\ImageEntityInterface;
 use ImgMan\Core\Blob\Blob;
 use ImgMan\Core\CoreInterface;
-use ImgMan\Image\Image;
 use ImgMan\Image\ImageInterface;
 use ImgMan\Service\ImageService as ImageManager;
 use Zend\Http\Header\Accept;
@@ -26,13 +25,21 @@ class ImgManConnectedResource extends AbstractResourceListener
      */
     protected $imageManager;
 
-
+    /**
+     * Ctor
+     *
+     * @param ImageManager $imageManager
+     */
     public function __construct(ImageManager $imageManager)
     {
         $this->imageManager = $imageManager;
     }
 
-
+    /**
+     * Retrieve resource
+     *
+     * @return object|string|null
+     */
     public function getResource()
     {
         if ($this->getEvent() && $this->event->getTarget() instanceof ResourceInterface) {
@@ -59,11 +66,10 @@ class ImgManConnectedResource extends AbstractResourceListener
         $image = $this->imageManager->get($id, $rendition);
         if ($image) {
 
-            if ($this->renderImage($image)) {
+            if ($this->hasToBeRendered($image)) {
                 return $this->getHttpImageResponse($image);
             } else {
-
-                $entity = $this->cloneEntityClass();
+                $entity = $this->getEntityClassInstance();
                 if (!$entity instanceof ImageEntityInterface) {
                     return new ApiProblem(500, 'Entity class must be configured');
                 }
@@ -129,22 +135,27 @@ class ImgManConnectedResource extends AbstractResourceListener
         if (null !== $filter) {
             return $filter->getValues();
         }
-        return (array) $data;
+        return (array)$data;
     }
 
     /**
+     * Wheter the image has to be rendered or not
+     *
+     * This choice depends on headers
+     *
      * @param ImageInterface $image
      * @return bool|Response
      */
-    protected function renderImage(ImageInterface $image)
+    protected function hasToBeRendered(ImageInterface $image)
     {
         $request = $this->getEvent()->getRequest();
         if ($request instanceof Request) {
             $headers = $request->getHeaders();
-            if ($headers->has('Accept')
-                && ($accept = $headers->get('Accept'))
-                && $accept instanceof Accept
-                && $accept->match($image->getMimeType())
+            if (
+                $headers->has('Accept') &&
+                ($accept = $headers->get('Accept')) &&
+                $accept instanceof Accept &&
+                $accept->match($image->getMimeType())
             ) {
                 return true;
             }
@@ -168,7 +179,7 @@ class ImgManConnectedResource extends AbstractResourceListener
     /**
      * @return mixed
      */
-    protected function cloneEntityClass()
+    protected function getEntityClassInstance()
     {
         $entityClass = $this->getEntityClass();
         return new $entityClass;

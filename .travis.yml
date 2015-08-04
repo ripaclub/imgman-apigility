@@ -1,26 +1,31 @@
+sudo: false
 language: php
-
 branches:
   only:
-    - master
-    - develop
-
+  - master
+  - develop
 php:
-  - 5.4
-  - 5.5
-  - 5.6
-  - hhvm
-
+- 5.4
+- 5.5
+- 5.6
+- 7
+- hhvm
+cache:
+  directories:
+  - "$HOME/.composer/cache"
 before_script:
-  - composer self-update
-  - composer install --dev --prefer-source
-
-script: ./vendor/bin/phpunit
-
+- composer self-update
+- composer config --global github-oauth.github.com ${GH_TOKEN}
+- composer install
+script:
+- vendor/bin/phpunit
 after_script:
-  - php vendor/bin/coveralls
-
+- php vendor/bin/coveralls
 matrix:
   fast_finish: true
   allow_failures:
-    - php: hhvm
+  - php: 7
+  - php: hhvm
+env:
+  global:
+    secure: Ml93yVlCUWhpzMUztGJKqPNJSn0PFu7E61CcW05uFtFrQHSmBXpcIZsBa3nSYFDr9Gvm3cI0RjlP+0daOgSrncJcwBubiVzDgHA4xKElXLsP+ANb78fScyxhR3sKR5Nw1WXlQCtAGW2+zEUSwWebThkZtExpK5fHCZ8TXa2It3fcdfvSypFkXdjjlHnfKEjbW4bzJJLUo47AB3gA8IUShyCkJbyD3GPQ9MvkMk09tew7Vw75qxdFhCoyk4AFte1TszppAz7AnCX/l6xE9Og/+FhJlOsXwWbgk0LnPUEV8JVY0hqeki0X4i2SEtpIdHbAksmzhAyDuJMnox4W+e47b1gem6cewJSP4xTOEauzPJEiC/Hw5WI3YG1bTgJeylyewd7Ncfsd4s0QbSZNuEOHWSaiyz8FBc90UPwj7l82E6yhVKMLf7zSCllVsedqs1+OZktkDuXTXYgYpSxOB8BRmB9dTSH7HksQb+t/nVpd63RFDWdkE+UcCsJepqMepSrwiYETSStEASWCNz1TNdKeoW7WMQRNID/NY12CG72nhW7qEWDxABb1mpBBTcHpDbrYUie+hh+Fuuttq87HaRRGKx3UkDZ2DINYiFYsdJsS5vCXVLVgTUxW7pFkjUaWQOUDXwJ7RIkpWkNWbjTOoO1SqaFbxM859i0poUsMs3gkwIM=

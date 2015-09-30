@@ -100,6 +100,23 @@ class ImgManConnectedResource extends AbstractResourceListener
     }
 
     /**
+     * @param mixed $id
+     * @return ApiProblem
+     */
+    public function delete($id)
+    {
+        $image = $this->imageManager->get($id, $rendition);
+
+        /** @var $image ImageInterface */
+        if ($image) {
+            $this->imageManager->delete($id);
+        }
+
+        return new ApiProblem(404, 'Image not found');
+    }
+
+
+    /**
      * @param $data
      * @return \ImgMan\Core\Blob\Blob|\ZF\ApiProblem\ApiProblem
      */

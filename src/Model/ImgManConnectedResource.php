@@ -106,8 +106,9 @@ class ImgManConnectedResource extends AbstractResourceListener
     public function delete($id)
     {
         $renditions = $this->imageManager->getRenditions();
-        $result = false;
-        foreach ($renditions as $rendition) {
+
+        $result = $this->imageManager->delete($id, CoreInterface::RENDITION_ORIGINAL);
+        foreach ($renditions as $rendition => $options) {
             $deleteRendition = $this->imageManager->delete($id, $rendition);
             $result = $result || $deleteRendition;
         }
@@ -116,7 +117,7 @@ class ImgManConnectedResource extends AbstractResourceListener
             return $result;
         }
 
-        return new ApiProblem(404, 'Image not found');
+        return new ApiProblem(404, 'Image not found');  
     }
 
 

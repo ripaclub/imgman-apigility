@@ -134,8 +134,14 @@ class ImgManConnectedResource extends AbstractResourceListener
         foreach ($recursive as $key => $value) {
             if ($key === 'blob') {
                 $blob = new Blob();
-                $blob->setBlob($value);
-                return $blob;
+                switch (true) {
+                    case is_array($value)  && isset($value['tmp_name']) :
+                        $blob->setBlob($value['tmp_name']);
+                        return $blob;
+                    case is_string($value) :
+                        $blob->setBlob($value);
+                        return $blob;
+                }
             }
         }
 

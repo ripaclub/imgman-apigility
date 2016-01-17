@@ -5,6 +5,7 @@ use ImgMan\Apigility\Entity\ImageEntityInterface;
 use ImgMan\Core\Blob\Blob;
 use ImgMan\Core\CoreInterface;
 use ImgMan\Image\ImageInterface;
+use ImgMan\Image\Image;
 use ImgMan\Service\ImageService as ImageManager;
 use Zend\Http\Header\Accept;
 use Zend\Http\Header\ContentLength;
@@ -133,14 +134,11 @@ class ImgManConnectedResource extends AbstractResourceListener
         $recursive = new \RecursiveIteratorIterator($iterator, \RecursiveIteratorIterator::SELF_FIRST);
         foreach ($recursive as $key => $value) {
             if ($key === 'blob') {
-                $blob = new Blob();
                 switch (true) {
                     case is_array($value)  && isset($value['tmp_name']) :
-                        $blob->setBlob($value['tmp_name']);
-                        return $blob;
+                        return new Image($value['tmp_name']);
                     case is_string($value) :
-                        $blob->setBlob($value);
-                        return $blob;
+                        return new Blob($value);
                 }
             }
         }

@@ -4,8 +4,8 @@
   "license": "BSD-2-Clause",
   "homepage": "http://github.com/ripaclub/zf-apigility-imgman",
   "require": {
-    "php": ">=5.4.0",
-    "ripaclub/imgman": "~0.4.0",
+    "php": ">=5.5.0",
+    "ripaclub/imgman": "~0.5.0",
     "zfcampus/zf-api-problem": "~1.0",
     "zfcampus/zf-rest": "~1.1"
   },

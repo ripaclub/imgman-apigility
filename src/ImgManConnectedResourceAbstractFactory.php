@@ -101,6 +101,10 @@ class ImgManConnectedResourceAbstractFactory implements AbstractFactoryInterface
         /* @var $resource \ImgMan\Apigility\Model\ImgManConnectedResource */
         $resource = new $resourceClass($imgManService);
 
+        if (isset($config['idName'])) {
+            $resource->setIdName($config['idName']);
+        }
+
         return $resource;
     }
 

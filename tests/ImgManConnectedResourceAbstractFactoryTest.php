@@ -25,7 +25,8 @@ class ImgManConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_TestC
                     ],
                     'ImgmanApigility\ConnectedResource2' => [],
                     'ImgmanApigility\ConnectedResource3' => [
-                        'service' => 'ImgMan\Service3'
+                        'service' => 'ImgMan\Service3',
+                        'idName' => 'testIdName'
                     ],
                     'ImgmanApigility\ConnectedResource4' => [
                         'service' => 'ImgMan\Service3',
@@ -84,10 +85,9 @@ class ImgManConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_TestC
     public function testGetService()
     {
         $this->assertTrue($this->serviceManager->has('ImgmanApigility\ConnectedResource3'));
-        $this->assertInstanceOf(
-            'ZF\Rest\AbstractResourceListener',
-            $this->serviceManager->get('ImgmanApigility\ConnectedResource3')
-        );
+        $resource =  $this->serviceManager->get('ImgmanApigility\ConnectedResource3');
+        $this->assertInstanceOf('ZF\Rest\AbstractResourceListener', $resource);
+        $this->assertSame($resource->getIdName(), 'testIdName');
     }
 
     public function testEmptyConfig()
@@ -115,52 +115,5 @@ class ImgManConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_TestC
 
         $this->serviceManager->setService('Config', []);
         $this->assertFalse($this->serviceManager->has('ImgmanApigility\ConnectedResource1'));
-    }
-
-    /**
-     * @depends testGetService
-     */
-    public function testAbstractPluginManagerAsServiceManager()
-    {
-        // TODO
-        /*
-        $config = [
-            'imgman-apigility' => [
-                'imgman-connected' => [
-                    'ImgmanApigility\ConnectedResource1' => [
-                        'service' => 'ImgMan\Service1'
-                    ],
-                    'ImgmanApigility\ConnectedResource2' => [],
-                    'ImgmanApigility\ConnectedResource3' => [
-                        'service' => 'ImgMan\Service3'
-                    ],
-                ]
-            ]
-        ];
-
-        $serviceManager = new ServiceManager\ServiceManager();
-        $serviceManager->setService('Config', $config);
-
-        $service = new TestPluginManager(
-            new ServiceManagerConfig(
-                [
-                    'abstract_factories' => [
-                        'ImgMan\Apigility\ImgManConnectedResourceAbstractFactory',
-                    ],
-                    'services' => [
-                        'ImgMan\Service1' => new Stream(),
-                        'ImgMan\Service3' => $this->getMock('ImgMan\Service\ImageService')
-                    ]
-                ]
-            )
-        );
-        $service->setServiceLocator($serviceManager);
-
-        $this->assertTrue($service->has('ImgmanApigility\ConnectedResource3'));
-        $this->assertInstanceOf(
-            'ZF\Rest\AbstractResourceListener',
-            $service->get('ImgmanApigility\ConnectedResource3')
-        );
-        */
     }
 }

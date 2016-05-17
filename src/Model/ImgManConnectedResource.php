@@ -6,12 +6,15 @@ use ImgMan\Core\Blob\Blob;
 use ImgMan\Core\CoreInterface;
 use ImgMan\Image\ImageInterface;
 use ImgMan\Image\Image;
+use ImgMan\Image\SrcAwareInterface;
 use ImgMan\Service\ImageService as ImageManager;
 use Zend\Http\Header\Accept;
 use Zend\Http\Header\ContentLength;
 use Zend\Http\Header\ContentType;
 use Zend\Http\Request;
 use Zend\Http\Response;
+use Zend\Hydrator\ClassMethods;
+use Zend\Mvc\Router\Http\RouteMatch;
 use ZF\ApiProblem\ApiProblem;
 use ZF\Rest\AbstractResourceListener;
 use ZF\Rest\ResourceInterface;
@@ -25,6 +28,11 @@ class ImgManConnectedResource extends AbstractResourceListener
      * @var ImageManager
      */
     protected $imageManager;
+
+    /**
+     * @var string
+     */
+    protected $idName = 'id';
 
     /**
      * Ctor
@@ -63,23 +71,20 @@ class ImgManConnectedResource extends AbstractResourceListener
             $rendition = $this->getEvent()->getQueryParam('rendition', CoreInterface::RENDITION_ORIGINAL);
         }
 
-        /** @var $image ImageInterface */
-        $image = $this->imageManager->get($id, $rendition);
-        if ($image) {
+        $hasImage = $this->imageManager->has($id, $rendition);
+        if ($hasImage) {
 
+            $src = $this->imageManager->getSrc($id, $rendition);
+            if ($src) {
+                return $this->getRedirectResponse();
+            }
+
+            $image = $this->imageManager->get($id, $rendition);
             if ($this->hasToBeRendered($image)) {
-                return $this->getHttpImageResponse($image);
+                return $this->getHttpResponse($image);
             } else {
-                $entity = $this->getEntityClassInstance();
-                if (!$entity instanceof ImageEntityInterface) {
-                    return new ApiProblem(500, 'Entity class must be configured');
-                }
 
-                $entity->setId($id);
-                $entity->setSize($image->getSize());
-                $entity->setMimeType($image->getMimeType());
-                $entity->setBlob(base64_encode($image->getBlob()));
-                return $entity;
+                return $this->getApigilityResponse($image, $id);
             }
         }
 
@@ -87,9 +92,19 @@ class ImgManConnectedResource extends AbstractResourceListener
     }
 
     /**
+     * @param mixed $data
+     * @return ImageInterface
+     */
+    public function create($data)
+    {
+        $id = $this->searchId($data);
+        return $this->update($id, $data);
+    }
+
+    /**
      * @param mixed $id
      * @param mixed $data
-     * @return string|null
+     * @return ImageInterface
      */
     public function update($id, $data)
     {
@@ -97,17 +112,33 @@ class ImgManConnectedResource extends AbstractResourceListener
         if ($blob instanceof ApiProblem) {
             return $blob;
         }
-        return $this->imageManager->grab($blob, $id);
+
+        $this->imageManager->grab($blob, $id);
+
+        $image = $this->imageManager->get($id);
+
+        $entity = $this->getEntityClassInstance();
+        if (!$entity instanceof ImageEntityInterface)
+        {
+            return new ApiProblem(500, 'Entity class must be configured');
+        }
+
+        /** @var $entity ImageEntityInterface */
+        $entity->setId($id);
+        $hydrator = new ClassMethods();
+        $data = $hydrator->extract($image);
+        $hydrator->hydrate($data, $entity);
+
+        return $entity;
     }
 
     /**
      * @param mixed $id
-     * @return ApiProblem
+     * @return ApiProblem|boolean
      */
     public function delete($id)
     {
         $renditions = $this->imageManager->getRenditions();
-
         $result = $this->imageManager->delete($id, CoreInterface::RENDITION_ORIGINAL);
         foreach ($renditions as $rendition => $options) {
             $deleteRendition = $this->imageManager->delete($id, $rendition);
@@ -138,12 +169,25 @@ class ImgManConnectedResource extends AbstractResourceListener
                     case is_array($value)  && isset($value['tmp_name']) :
                         return new Image($value['tmp_name']);
                     case is_string($value) :
-                        return new Blob($value);
+                        return (new Blob())->setBlob($value);
                 }
             }
         }
-
         return new ApiProblem(400, 'File not found in upload request');
+    }
+
+    protected function searchId($data)
+    {
+        if (is_array($data) && isset($data[$this->getIdName()])) {
+            return $data[$this->getIdName()];
+        }
+
+        $routerMatch = $this->getResource()->getRouteMatch();
+        if ($routerMatch && $routerMatch instanceof RouteMatch && $routerMatch->getParam($this->getIdName())) {
+            return $routerMatch->getParam($this->getIdName());
+        }
+
+        return new ApiProblem(400, sprintf('%s not found in upload request', $this->getIdName()));
     }
 
     /**
@@ -193,7 +237,7 @@ class ImgManConnectedResource extends AbstractResourceListener
      * @param ImageInterface $image
      * @return Response
      */
-    protected function getHttpImageResponse(ImageInterface $image)
+    protected function getHttpResponse(ImageInterface $image)
     {
         $response = new Response();
         $response->setContent($image->getBlob());
@@ -203,11 +247,60 @@ class ImgManConnectedResource extends AbstractResourceListener
     }
 
     /**
+     * @param $src
+     * @return Response
+     */
+    protected function getRedirectResponse($src)
+    {
+        $response = new Response();
+        $response->getHeaders()->addHeaderLine('Location', $src);
+        $response->setStatusCode(302);
+        return $response;
+    }
+
+    /**
+     * @param ImageInterface $image
+     * @param $id
+     * @return mixed|ApiProblem
+     */
+    protected function getApigilityResponse(ImageInterface $image, $id)
+    {
+        $entity = $this->getEntityClassInstance();
+        if (!$entity instanceof ImageEntityInterface) {
+            return new ApiProblem(500, 'Entity class must be configured');
+        }
+        /** @var $image ImageInterface */
+        $entity->setId($id);
+        $entity->setSize($image->getSize());
+        $entity->setMimeType($image->getMimeType());
+        $entity->setBlob(base64_encode($image->getBlob()));
+        return $entity;
+    }
+
+    /**
      * @return mixed
      */
     protected function getEntityClassInstance()
     {
         $entityClass = $this->getEntityClass();
         return new $entityClass;
+    }
+
+    /**
+     * @return string
+     */
+    public function getIdName()
+    {
+        return $this->idName;
+    }
+
+    /**
+     * @param string $idName
+     * @return $this
+     */
+    public function setIdName($idName)
+    {
+        $this->idName = $idName;
+        return $this;
     }
 }

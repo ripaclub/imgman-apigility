@@ -76,7 +76,7 @@ class ImgManConnectedResource extends AbstractResourceListener
 
             $src = $this->imageManager->getSrc($id, $rendition);
             if ($src) {
-                return $this->getRedirectResponse();
+                return $this->getRedirectResponse($src);
             }
 
             $image = $this->imageManager->get($id, $rendition);

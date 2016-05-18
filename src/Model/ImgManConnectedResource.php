@@ -13,8 +13,8 @@ use Zend\Http\Header\ContentLength;
 use Zend\Http\Header\ContentType;
 use Zend\Http\Request;
 use Zend\Http\Response;
-use Zend\Hydrator\ClassMethods;
 use Zend\Mvc\Router\Http\RouteMatch;
+use Zend\Stdlib\Hydrator\ClassMethods;
 use ZF\ApiProblem\ApiProblem;
 use ZF\Rest\AbstractResourceListener;
 use ZF\Rest\ResourceInterface;
@@ -33,6 +33,12 @@ class ImgManConnectedResource extends AbstractResourceListener
      * @var string
      */
     protected $idName = 'id';
+
+    /**
+     * @var string
+     */
+    protected $blobName = 'blob';
+
 
     /**
      * Ctor
@@ -71,13 +77,13 @@ class ImgManConnectedResource extends AbstractResourceListener
             $rendition = $this->getEvent()->getQueryParam('rendition', CoreInterface::RENDITION_ORIGINAL);
         }
 
+        $src = $this->imageManager->getSrc($id, $rendition);
+        if ($src) {
+            return $this->getRedirectResponse($src);
+        }
+
         $hasImage = $this->imageManager->has($id, $rendition);
         if ($hasImage) {
-
-            $src = $this->imageManager->getSrc($id, $rendition);
-            if ($src) {
-                return $this->getRedirectResponse($src);
-            }
 
             $image = $this->imageManager->get($id, $rendition);
             if ($this->hasToBeRendered($image)) {
@@ -98,6 +104,9 @@ class ImgManConnectedResource extends AbstractResourceListener
     public function create($data)
     {
         $id = $this->searchId($data);
+        if ($id instanceof ApiProblem) {
+            return $id;
+        }
         return $this->update($id, $data);
     }
 
@@ -164,7 +173,7 @@ class ImgManConnectedResource extends AbstractResourceListener
         $iterator = new \RecursiveArrayIterator($data);
         $recursive = new \RecursiveIteratorIterator($iterator, \RecursiveIteratorIterator::SELF_FIRST);
         foreach ($recursive as $key => $value) {
-            if ($key === 'blob') {
+            if ($key === $this->getBlobName()) {
                 switch (true) {
                     case is_array($value)  && isset($value['tmp_name']) :
                         return new Image($value['tmp_name']);
@@ -180,6 +189,10 @@ class ImgManConnectedResource extends AbstractResourceListener
     {
         if (is_array($data) && isset($data[$this->getIdName()])) {
             return $data[$this->getIdName()];
+        }
+
+        if (is_object($data) && property_exists($data, $this->getIdName()) ) {
+            return $data->{$this->getIdName()};
         }
 
         $routerMatch = $this->getResource()->getRouteMatch();
@@ -301,6 +314,24 @@ class ImgManConnectedResource extends AbstractResourceListener
     public function setIdName($idName)
     {
         $this->idName = $idName;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBlobName()
+    {
+        return $this->blobName;
+    }
+
+    /**
+     * @param string $blobName
+     * @return $this
+     */
+    public function setBlobName($blobName)
+    {
+        $this->blobName = $blobName;
         return $this;
     }
 }

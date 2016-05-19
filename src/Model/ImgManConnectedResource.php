@@ -131,8 +131,9 @@ class ImgManConnectedResource extends AbstractResourceListener
 
         $this->imageManager->grab($blob, $id);
         $image = $this->imageManager->get($id);
-
-        return $this->getApigilityResponse($image, $id);
+        $entity = $this->getApigilityResponse($image, $id);
+        $this->getEvent()->setParam('image', $entity);
+        return $entity;
     }
 
     /**

@@ -2,6 +2,7 @@
 namespace ImgMan\Apigility\Model;
 
 use ImgMan\Apigility\Entity\ImageEntityInterface;
+use ImgMan\Apigility\Hydrator\Strategy\Base64Strategy;
 use ImgMan\Core\Blob\Blob;
 use ImgMan\Core\CoreInterface;
 use ImgMan\Image\ImageInterface;
@@ -15,6 +16,8 @@ use Zend\Http\Request;
 use Zend\Http\Response;
 use Zend\Mvc\Router\Http\RouteMatch;
 use Zend\Stdlib\Hydrator\ClassMethods;
+use Zend\Stdlib\Hydrator\Filter\FilterComposite;
+use Zend\Stdlib\Hydrator\Filter\MethodMatchFilter;
 use ZF\ApiProblem\ApiProblem;
 use ZF\Rest\AbstractResourceListener;
 use ZF\Rest\ResourceInterface;
@@ -39,6 +42,10 @@ class ImgManConnectedResource extends AbstractResourceListener
      */
     protected $blobName = 'blob';
 
+    /**
+     * @var bool
+     */
+    protected $renderBlob = false;
 
     /**
      * Ctor
@@ -123,22 +130,9 @@ class ImgManConnectedResource extends AbstractResourceListener
         }
 
         $this->imageManager->grab($blob, $id);
-
         $image = $this->imageManager->get($id);
 
-        $entity = $this->getEntityClassInstance();
-        if (!$entity instanceof ImageEntityInterface)
-        {
-            return new ApiProblem(500, 'Entity class must be configured');
-        }
-
-        /** @var $entity ImageEntityInterface */
-        $entity->setId($id);
-        $hydrator = new ClassMethods();
-        $data = $hydrator->extract($image);
-        $hydrator->hydrate($data, $entity);
-
-        return $entity;
+        return $this->getApigilityResponse($image, $id);
     }
 
     /**
@@ -238,7 +232,7 @@ class ImgManConnectedResource extends AbstractResourceListener
                 $headers->has('Accept') &&
                 ($accept = $headers->get('Accept')) &&
                 $accept instanceof Accept &&
-                $accept->match($image->getMimeType())
+                (($image && $accept->match($image->getMimeType())) || $accept->getFieldValue() === '*/*')
             ) {
                 return true;
             }
@@ -284,10 +278,32 @@ class ImgManConnectedResource extends AbstractResourceListener
         }
         /** @var $image ImageInterface */
         $entity->setId($id);
-        $entity->setSize($image->getSize());
-        $entity->setMimeType($image->getMimeType());
-        $entity->setBlob(base64_encode($image->getBlob()));
+        $hydrator = $this->getHydrator();
+        $data = $hydrator->extract($image);
+        $hydrator->hydrate($data, $entity);
+
         return $entity;
+    }
+
+    /**
+     * @return ClassMethods
+     */
+    protected function getHydrator()
+    {
+        $hydrator = new ClassMethods();
+        if ($this->isRenderBlob()) {
+            $hydrator->addStrategy('blob', new Base64Strategy());
+        } else {
+            $hydrator->addFilter(
+                'hydrator',
+                new MethodMatchFilter(
+                    'getBlob',
+                    true // exclude method
+                ),
+                FilterComposite::CONDITION_AND
+            );
+        }
+        return $hydrator;
     }
 
     /**
@@ -332,6 +348,24 @@ class ImgManConnectedResource extends AbstractResourceListener
     public function setBlobName($blobName)
     {
         $this->blobName = $blobName;
+        return $this;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isRenderBlob()
+    {
+        return $this->renderBlob;
+    }
+
+    /**
+     * @param boolean $renderBlob
+     * @return $this
+     */
+    public function setRenderBlob($renderBlob)
+    {
+        $this->renderBlob = $renderBlob;
         return $this;
     }
 }

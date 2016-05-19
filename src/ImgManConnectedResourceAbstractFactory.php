@@ -109,6 +109,10 @@ class ImgManConnectedResourceAbstractFactory implements AbstractFactoryInterface
             $resource->setBlobName($config['blobName']);
         }
 
+        if (isset($config['renderBlob'])) {
+            $resource->setRenderBlob($config['renderBlob']);
+        }
+
         return $resource;
     }
 

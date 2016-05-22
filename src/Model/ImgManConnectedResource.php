@@ -313,6 +313,15 @@ class ImgManConnectedResource extends AbstractResourceListener
     protected function getEntityClassInstance()
     {
         $entityClass = $this->getEntityClass();
+        if (!is_string($entityClass)) {
+            throw new \RuntimeException(sprintf(
+                    'Wrong parameter entityClass must be a string given %s "',
+                    is_object($entityClass) ? get_class($entityClass) : gettype($entityClass))
+            );
+        }
+        if (!class_exists($entityClass)) {
+            throw new \RuntimeException(sprintf('Class "%s" not exist', $entityClass));
+        }
         return new $entityClass;
     }
 

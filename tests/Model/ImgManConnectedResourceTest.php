@@ -239,7 +239,7 @@ class ImgManConnectedResourceTest extends PHPUnit_Framework_TestCase
     /**
      * @depends testFetch
      */
-    public function testGetResource()
+    public function _testGetResource()
     {
         $this->imgManMock = $this->getMockBuilder('ImgMan\Service\ImageService')
             ->disableOriginalConstructor()

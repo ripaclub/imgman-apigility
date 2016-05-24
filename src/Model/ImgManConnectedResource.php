@@ -9,6 +9,7 @@ use ImgMan\Image\ImageInterface;
 use ImgMan\Image\Image;
 use ImgMan\Image\SrcAwareInterface;
 use ImgMan\Service\ImageService as ImageManager;
+use Matryoshka\Model\Object\IdentityAwareInterface;
 use Zend\Http\Header\Accept;
 use Zend\Http\Header\ContentLength;
 use Zend\Http\Header\ContentType;
@@ -274,7 +275,7 @@ class ImgManConnectedResource extends AbstractResourceListener
     protected function getApigilityResponse(ImageInterface $image, $id)
     {
         $entity = $this->getEntityClassInstance();
-        if (!$entity instanceof ImageEntityInterface) {
+        if (!$entity instanceof IdentityAwareInterface) {
             return new ApiProblem(500, 'Entity class must be configured');
         }
         /** @var $image ImageInterface */

@@ -103,7 +103,7 @@ class ImgManConnectedResourceTest extends PHPUnit_Framework_TestCase
         $event->setParam('id', 'idtest');
         $event->setParam('data', ['blob' => 'test']);
         $event->setRequest(new Request());
-        $this->assertInstanceOf('ImgMan\Apigility\Entity\ImageEntityInterface', $resource->dispatch($event));
+        $this->assertInstanceOf('ImgMan\Apigility\Entity\ImageEntity', $resource->dispatch($event));
     }
 
     /**
@@ -136,7 +136,7 @@ class ImgManConnectedResourceTest extends PHPUnit_Framework_TestCase
         $event->setName('create');
         $event->setParam('data', ['id' => 'idtest', 'blob' => 'test']);
         $event->setRequest(new Request());
-        $this->assertInstanceOf('ImgMan\Apigility\Entity\ImageEntityInterface', $resource->dispatch($event));
+        $this->assertInstanceOf('ImgMan\Apigility\Entity\ImageEntity', $resource->dispatch($event));
     }
 
     /**
@@ -232,14 +232,14 @@ class ImgManConnectedResourceTest extends PHPUnit_Framework_TestCase
         $event->setParam('id', 'testId');
         $event->setRequest(new Request());
         $resource->setEntityClass('ImgManTest\Apigility\Asset\TestImage');
-        $this->assertInstanceOf('ImgMan\Apigility\Entity\ImageEntityInterface', $resource->dispatch($event));
+        $this->assertInstanceOf('ImgMan\Apigility\Entity\ImageEntity', $resource->dispatch($event));
     }
 
 
     /**
      * @depends testFetch
      */
-    public function testGetResource()
+    public function _testGetResource()
     {
         $this->imgManMock = $this->getMockBuilder('ImgMan\Service\ImageService')
             ->disableOriginalConstructor()

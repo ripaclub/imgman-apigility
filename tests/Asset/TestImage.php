@@ -8,31 +8,9 @@
 
 namespace ImgManTest\Apigility\Asset;
 
-use ImgMan\Apigility\Entity\ImageEntityInterface;
+use ImgMan\Apigility\Entity\ImageEntity;
 use ImgMan\Image\ImageTrait;
 
-class TestImage implements ImageEntityInterface
+class TestImage extends ImageEntity
 {
-    use ImageTrait;
-
-    protected $id;
-
-    /**
-     * @return mixed
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
-     * @param mixed $id
-     * @return $this
-     */
-    public function setId($id)
-    {
-        $this->id = $id;
-        return $this;
-    }
-
 }

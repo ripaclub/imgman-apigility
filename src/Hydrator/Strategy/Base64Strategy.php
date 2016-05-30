@@ -12,7 +12,7 @@ class Base64Strategy implements StrategyInterface
 {
     public function extract($value)
     {
-        return $value;
+        return base64_decode($value);
     }
 
     public function hydrate($value)

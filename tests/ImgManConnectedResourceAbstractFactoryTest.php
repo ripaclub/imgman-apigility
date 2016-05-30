@@ -1,7 +1,9 @@
 <?php
 namespace ImgManTest\Apigility;
 
+use MatryoshkaTest\Model\Object\AbstractCollectionTest;
 use PHPUnit_Framework_TestCase;
+use Zend\Mvc\Controller\PluginManager;
 use Zend\Mvc\Service\ServiceManagerConfig;
 use Zend\ServiceManager;
 
@@ -26,11 +28,13 @@ class ImgManConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_TestC
                     'ImgmanApigility\ConnectedResource2' => [],
                     'ImgmanApigility\ConnectedResource3' => [
                         'service' => 'ImgMan\Service3',
-                        'idName' => 'testIdName'
+                        'idName' => 'testIdName',
+                        'blobName' => 'test',
+                        'renderBlob' => 'renderBlob'
                     ],
                     'ImgmanApigility\ConnectedResource4' => [
                         'service' => 'ImgMan\Service3',
-                        'resource_class' => 'stdClass'
+                        'resource_class' => 'stdClass',
                     ],
 
                 ]
@@ -87,7 +91,6 @@ class ImgManConnectedResourceAbstractFactoryTest extends PHPUnit_Framework_TestC
         $this->assertTrue($this->serviceManager->has('ImgmanApigility\ConnectedResource3'));
         $resource =  $this->serviceManager->get('ImgmanApigility\ConnectedResource3');
         $this->assertInstanceOf('ZF\Rest\AbstractResourceListener', $resource);
-        $this->assertSame($resource->getIdName(), 'testIdName');
     }
 
     public function testEmptyConfig()

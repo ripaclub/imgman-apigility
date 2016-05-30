@@ -44,11 +44,6 @@ class ImgManConnectedResource extends AbstractResourceListener
     protected $blobName = 'blob';
 
     /**
-     * @var bool
-     */
-    protected $renderBlob = false;
-
-    /**
      * Ctor
      *
      * @param ImageManager $imageManager
@@ -86,7 +81,7 @@ class ImgManConnectedResource extends AbstractResourceListener
         }
 
         $src = $this->imageManager->getSrc($id, $rendition);
-        if ($src) {
+        if ($src && !$this->isAccept('application/json')) {
             return $this->getRedirectResponse($src);
         }
 
@@ -94,7 +89,7 @@ class ImgManConnectedResource extends AbstractResourceListener
         if ($hasImage) {
 
             $image = $this->imageManager->get($id, $rendition);
-            if ($this->hasToBeRendered($image)) {
+            if ($this->isAccept($image->getMimeType()) || $this->isAccept('*/*')) {
                 return $this->getHttpResponse($image);
             } else {
 
@@ -217,24 +212,24 @@ class ImgManConnectedResource extends AbstractResourceListener
         return (array)$data;
     }
 
+
     /**
-     * Wheter the image has to be rendered or not
-     *
-     * This choice depends on headers
-     *
-     * @param ImageInterface $image
-     * @return bool|Response
+     * @param $value
+     * @return bool
      */
-    protected function hasToBeRendered(ImageInterface $image)
-    {
+    protected function isAccept($value) {
+        if ($value === null) {
+            return false;
+        }
+
         $request = $this->getEvent()->getRequest();
         if ($request instanceof Request) {
             $headers = $request->getHeaders();
             if (
-                $headers->has('Accept') &&
-                ($accept = $headers->get('Accept')) &&
-                $accept instanceof Accept &&
-                (($image && $accept->match($image->getMimeType())) || $accept->getFieldValue() === '*/*')
+                $headers->has('Accept')
+                && ($accept = $headers->get('Accept'))
+                && $accept instanceof Accept
+                && $accept->match($value)
             ) {
                 return true;
             }
@@ -278,8 +273,7 @@ class ImgManConnectedResource extends AbstractResourceListener
         if (!$entity instanceof IdentityAwareInterface) {
             return new ApiProblem(500, 'Entity class must be configured');
         }
-        /** @var $image ImageInterface */
-        $entity->setId($id);
+
         $hydrator = $this->getHydrator();
         $data = $hydrator->extract($image);
         $hydrator->hydrate($data, $entity);
@@ -292,20 +286,7 @@ class ImgManConnectedResource extends AbstractResourceListener
      */
     protected function getHydrator()
     {
-        $hydrator = new ClassMethods();
-        if ($this->isRenderBlob()) {
-            $hydrator->addStrategy('blob', new Base64Strategy());
-        } else {
-            $hydrator->addFilter(
-                'hydrator',
-                new MethodMatchFilter(
-                    'getBlob',
-                    true // exclude method
-                ),
-                FilterComposite::CONDITION_AND
-            );
-        }
-        return $hydrator;
+        return new ClassMethods();
     }
 
     /**
@@ -359,24 +340,6 @@ class ImgManConnectedResource extends AbstractResourceListener
     public function setBlobName($blobName)
     {
         $this->blobName = $blobName;
-        return $this;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function isRenderBlob()
-    {
-        return $this->renderBlob;
-    }
-
-    /**
-     * @param boolean $renderBlob
-     * @return $this
-     */
-    public function setRenderBlob($renderBlob)
-    {
-        $this->renderBlob = $renderBlob;
         return $this;
     }
 }

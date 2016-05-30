@@ -235,11 +235,97 @@ class ImgManConnectedResourceTest extends PHPUnit_Framework_TestCase
         $this->assertInstanceOf('ImgMan\Apigility\Entity\ImageEntity', $resource->dispatch($event));
     }
 
+    public function testFetchRedirect()
+    {
+        $this->imgManMock = $this->getMockBuilder('ImgMan\Service\ImageService')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->imgManMock = $this->getMockBuilder('ImgMan\Service\ImageService')
+            ->disableOriginalConstructor()
+            ->setMethods(['has', 'get', 'getSrc'])
+            ->getMock();
+
+        $this->imgManMock->expects($this->any())
+            ->method('has')
+            ->with($this->equalTo('testId'),$this->equalTo(CoreInterface::RENDITION_ORIGINAL))
+            ->will($this->returnValue(true));
+
+        $this->imgManMock->expects($this->any())
+            ->method('getSrc')
+            ->with($this->equalTo('testId'),$this->equalTo(CoreInterface::RENDITION_ORIGINAL))
+            ->will($this->returnValue('test'));
+
+
+        $this->imgManMock->expects($this->any())
+            ->method('get')
+            ->with($this->equalTo('testId'))
+            ->will($this->returnValue($this->getMock('ImgManTest\Apigility\Asset\TestImage')));
+
+        $resource = new ImgManConnectedResource($this->imgManMock);
+        $event = new ResourceEvent();
+        $event->setName('fetch');
+        $event->setParam('id', 'testId');
+        $event->setRequest(new Request());
+        $resource->setEntityClass('ImgManTest\Apigility\Asset\TestImage');
+        /** @var $response \Zend\Http\Response */
+        $response = $resource->dispatch($event);
+        $this->assertInstanceOf('Zend\Http\Response', $response);
+        $this->assertSame(302, $response->getStatusCode());
+    }
+
+    public function testFetchHttpResponse()
+    {
+        $this->imgManMock = $this->getMockBuilder('ImgMan\Service\ImageService')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->imgManMock = $this->getMockBuilder('ImgMan\Service\ImageService')
+            ->disableOriginalConstructor()
+            ->setMethods(['has', 'get', 'getSrc'])
+            ->getMock();
+
+        $this->imgManMock->expects($this->any())
+            ->method('has')
+            ->with($this->equalTo('testId'),$this->equalTo(CoreInterface::RENDITION_ORIGINAL))
+            ->will($this->returnValue(true));
+
+        $this->imgManMock->expects($this->any())
+            ->method('getSrc')
+            ->with($this->equalTo('testId'),$this->equalTo(CoreInterface::RENDITION_ORIGINAL))
+            ->will($this->returnValue(null));
+
+        $image = $this->getMockBuilder('ImgManTest\Apigility\Asset\TestImage')
+            ->disableOriginalConstructor()
+            ->setMethods(['getMimeType'])
+            ->getMock();;
+
+        $image->expects($this->any())
+            ->method('getMimeType')
+            ->will($this->returnValue('application/json'));
+
+        $this->imgManMock->expects($this->any())
+            ->method('get')
+            ->with($this->equalTo('testId'))
+            ->will($this->returnValue($image));
+
+        $resource = new ImgManConnectedResource($this->imgManMock);
+        $event = new ResourceEvent();
+        $event->setName('fetch');
+        $event->setParam('id', 'testId');
+        $request = new Request();
+        $request->getHeaders()->addHeaderLine('Accept', '*/*');
+        $event->setRequest($request);
+        $resource->setEntityClass('ImgManTest\Apigility\Asset\TestImage');
+        /** @var $response \Zend\Http\Response */
+        $response = $resource->dispatch($event);
+        $this->assertInstanceOf('Zend\Http\Response', $response);
+    }
 
     /**
      * @depends testFetch
      */
-    public function _testGetResource()
+    public function testGetResource()
     {
         $this->imgManMock = $this->getMockBuilder('ImgMan\Service\ImageService')
             ->disableOriginalConstructor()

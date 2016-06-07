@@ -89,7 +89,7 @@ class ImgManConnectedResource extends AbstractResourceListener
         if ($hasImage) {
 
             $image = $this->imageManager->get($id, $rendition);
-            if ($this->isAccept($image->getMimeType()) || $this->isAccept('*/*')) {
+            if ($this->isAccept($image->getMimeType()) || $this->isAccept('*/*', true)) {
                 return $this->getHttpResponse($image);
             } else {
 
@@ -215,9 +215,10 @@ class ImgManConnectedResource extends AbstractResourceListener
 
     /**
      * @param $value
+     * @param bool $exactly
      * @return bool
      */
-    protected function isAccept($value) {
+    protected function isAccept($value, $exactly = false) {
         if ($value === null) {
             return false;
         }
@@ -229,9 +230,13 @@ class ImgManConnectedResource extends AbstractResourceListener
                 $headers->has('Accept')
                 && ($accept = $headers->get('Accept'))
                 && $accept instanceof Accept
-                && $accept->match($value)
             ) {
-                return true;
+                if ($exactly === false && $accept->match($value)) {
+                    return true;
+                } elseif ($accept->getFieldValue() == $value)  {
+                    return true;
+                }
+
             }
         }
         return false;
@@ -274,9 +279,14 @@ class ImgManConnectedResource extends AbstractResourceListener
             return new ApiProblem(500, 'Entity class must be configured');
         }
 
+        $data['id'] = $id;
         $hydrator = $this->getHydrator();
         $data = $hydrator->extract($image);
         $hydrator->hydrate($data, $entity);
+
+        if ($entity instanceof IdentityAwareInterface) {
+            $entity->setId($id);
+        }
 
         return $entity;
     }
